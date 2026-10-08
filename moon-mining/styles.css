@@ -386,6 +386,7 @@ span {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .miner-image-placeholder {
@@ -504,6 +505,19 @@ span {
     padding: 16px;
     gap: 16px;
     margin-bottom: 12px;
+    animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cardIn {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .owned-miner-icon {
@@ -591,12 +605,20 @@ span {
 }
 
 /* Profile */
+.profile-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
 .profile-header {
     display: flex;
     align-items: center;
     padding: 20px;
     gap: 16px;
     margin-bottom: 24px;
+    margin-top: 0;
 }
 
 .profile-avatar {
@@ -1012,6 +1034,42 @@ span {
     }
 }
 
+/* ---------- Asteroides de fundo ---------- */
+#asteroids {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+#app-container {
+    position: relative;
+    z-index: 1;
+}
+
+.asteroid {
+    position: absolute;
+    right: -60px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #8e9bb5, #3d465e 70%);
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.15);
+    opacity: 0.45;
+    animation-name: asteroidFly;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes asteroidFly {
+    from {
+        transform: translate(0, 0) rotate(0deg);
+    }
+
+    to {
+        transform: translate(-130vw, 55vh) rotate(540deg);
+    }
+}
+
 /* ---------- Tela de carregamento ---------- */
 #splash-screen {
     position: fixed;
@@ -1019,8 +1077,10 @@ span {
     z-index: 9999;
     background: var(--deep-background);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 32px;
     opacity: 1;
     transition: opacity 0.5s ease;
 }
@@ -1049,9 +1109,28 @@ span {
     }
 }
 
+.splash-spinner {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.15);
+    border-top-color: var(--primary-purple);
+    animation: splashSpin 0.9s linear infinite;
+}
+
+@keyframes splashSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .splash-logo {
         animation: none;
+    }
+
+    .splash-spinner {
+        animation-duration: 2s;
     }
 
     #splash-screen {
@@ -1080,6 +1159,14 @@ span {
 
 #modal-overlay.open .modal-box {
     transform: translateY(0);
+}
+
+#modal-overlay.closing {
+    opacity: 0;
+}
+
+#modal-overlay.closing .modal-box {
+    transform: translateY(40px);
 }
 
 .modal-box {

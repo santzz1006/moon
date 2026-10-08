@@ -12,6 +12,7 @@
     <!-- Tela de carregamento -->
     <div id="splash-screen" role="status" aria-label="Carregando">
         <img src="logo.svg" alt="Moon Mining" class="splash-logo">
+        <div class="splash-spinner" aria-hidden="true"></div>
     </div>
 
     <div id="app-container">
@@ -50,11 +51,6 @@
                     <span>GoMiners</span>
                     <i class="icon nav-arrow" data-icon="arrow_right"></i>
                 </a>
-                <a href="#" class="nav-item sidebar-link" data-view="market" data-tab="Viagem">
-                    <i class="icon" data-icon="earn"></i>
-                    <span>Viagem</span>
-                    <i class="icon nav-arrow" data-icon="arrow_right"></i>
-                </a>
                 <a href="#" class="nav-item sidebar-link" data-view="market" data-tab="Mercadorias">
                     <i class="icon" data-icon="etiqueta_preco"></i>
                     <span>Mercadorias</span>
@@ -87,7 +83,7 @@
                     <i class="icon nav-arrow" data-icon="arrow_right"></i>
                 </a>
                 <a href="#" class="nav-item sidebar-link" data-view="payment">
-                    <i class="icon" data-icon="transfer_converter"></i>
+                    <i class="icon" data-icon="cartao"></i>
                     <span>Cartões</span>
                     <i class="icon nav-arrow" data-icon="arrow_right"></i>
                 </a>
@@ -117,9 +113,9 @@
         <!-- Top Header -->
         <header class="top-header glass">
             <button id="open-sidebar" class="icon-btn"><i class="icon" data-icon="menu_lateral"></i></button>
-            <h1 class="page-title">Início <i class="icon text-secondary" data-icon="seta_baixo_sanfona"></i></h1>
+            <h1 class="page-title">Início</h1>
             <div class="header-right">
-                <i class="icon text-purple" data-icon="coroa"></i>
+                <i class="icon text-purple" data-icon="coroa" style="font-size:22px"></i>
                 <button class="icon-btn bell-btn" id="toggle-notifications" aria-label="Notificações"><i class="icon"
                         data-icon="sino_ligado"></i></button>
             </div>
@@ -190,7 +186,7 @@
                     </div>
                     <div class="grid-card glass">
                         <i class="icon text-purple card-icon" data-icon="coroa"></i>
-                        <h4>Bronze II</h4>
+                        <h4 id="display-vip-level">Bronze I</h4>
                         <p class="text-secondary">VIP Progress</p>
                     </div>
                     <div class="grid-card glass">
@@ -206,7 +202,6 @@
                 <div class="market-tabs">
                     <button class="tab-btn active">Mineiros</button>
                     <button class="tab-btn">MoonMiners</button>
-                    <button class="tab-btn">Viagem</button>
                     <button class="tab-btn">Mercadorias</button>
                 </div>
                 <div class="market-subtabs">
@@ -228,8 +223,8 @@
                         <strong id="farm-power">0 TH</strong>
                     </div>
                     <div class="stat">
-                        <span class="text-secondary">Efficiency</span>
-                        <strong>35 W/TH</strong>
+                        <span class="text-secondary">Energia</span>
+                        <strong id="farm-energy">0/0 W</strong>
                     </div>
                     <div class="stat">
                         <span class="text-secondary">Discount</span>
@@ -241,6 +236,15 @@
                     <button class="icon-btn glass"><i class="icon" data-icon="raio"></i></button>
                     <button class="icon-btn glass"><i class="icon" data-icon="criar"></i></button>
                     <button class="icon-btn glass"><i class="icon" data-icon="config"></i></button>
+                </div>
+
+                <div class="banner glass" id="energy-banner" style="cursor:pointer">
+                    <div class="banner-icon"><i class="icon text-green" data-icon="raio_circulo"></i></div>
+                    <div class="banner-text">
+                        <h4>Energia <span id="energy-banner-status"></span></h4>
+                        <p class="text-secondary" id="energy-banner-text">Toque para gerenciar e comprar geradores</p>
+                    </div>
+                    <i class="icon" data-icon="arrow_right"></i>
                 </div>
 
                 <div id="owned-miners-list">
@@ -290,7 +294,7 @@
                 <div class="asset-list">
                     <h3 class="section-title">Assets</h3>
                     <!-- Bitcoin -->
-                    <div class="asset-item glass">
+                    <div class="asset-item glass" style="cursor:pointer" onclick="openWalletAddress('btc')">
                         <div class="asset-icon crypto-icon-wrap">
                             <img src="crypto-icons/btc.svg" alt="BTC" class="crypto-img">
                         </div>
@@ -304,7 +308,7 @@
                         </div>
                     </div>
                     <!-- Moon Mining Token -->
-                    <div class="asset-item glass">
+                    <div class="asset-item glass" style="cursor:pointer" onclick="openWalletAddress('mmt')">
                         <div class="asset-icon crypto-icon-wrap moon-token-icon">
                             <img src="crypto-icons/moon-token.png" alt="MOONMINING" class="crypto-img moon-token-img">
                         </div>
@@ -313,12 +317,12 @@
                             <span class="text-secondary">MOONMINING</span>
                         </div>
                         <div class="asset-balance text-right">
-                            <h4 id="asset-gmt-balance">100.00</h4>
-                            <span class="text-secondary" id="asset-gmt-usd">$32.00</span>
+                            <h4 id="asset-mmt-balance">1000.00</h4>
+                            <span class="text-secondary" id="asset-mmt-usd">$32.00</span>
                         </div>
                     </div>
                     <!-- Ethereum -->
-                    <div class="asset-item glass">
+                    <div class="asset-item glass" style="cursor:pointer" onclick="openWalletAddress('eth')">
                         <div class="asset-icon crypto-icon-wrap" style="background:#627EEA;">
                             <img src="crypto-icons/eth.svg" alt="ETH" class="crypto-img">
                         </div>
@@ -327,12 +331,12 @@
                             <span class="text-secondary">ETH</span>
                         </div>
                         <div class="asset-balance text-right">
-                            <h4>0.0000</h4>
-                            <span class="text-secondary">$0.00</span>
+                            <h4 id="asset-eth-balance">0.000000</h4>
+                            <span class="text-secondary" id="asset-eth-usd">$0.00</span>
                         </div>
                     </div>
                     <!-- USDT -->
-                    <div class="asset-item glass">
+                    <div class="asset-item glass" style="cursor:pointer" onclick="openWalletAddress('usdt')">
                         <div class="asset-icon crypto-icon-wrap" style="background:#26A17B;">
                             <img src="crypto-icons/usdt.svg" alt="USDT" class="crypto-img">
                         </div>
@@ -341,12 +345,12 @@
                             <span class="text-secondary">USDT</span>
                         </div>
                         <div class="asset-balance text-right">
-                            <h4>0.00</h4>
-                            <span class="text-secondary">$0.00</span>
+                            <h4 id="asset-usdt-balance">0.00</h4>
+                            <span class="text-secondary" id="asset-usdt-usd">$0.00</span>
                         </div>
                     </div>
                     <!-- BNB -->
-                    <div class="asset-item glass">
+                    <div class="asset-item glass" style="cursor:pointer" onclick="openWalletAddress('bnb')">
                         <div class="asset-icon crypto-icon-wrap" style="background:#F3BA2F;">
                             <img src="crypto-icons/bnb.svg" alt="BNB" class="crypto-img">
                         </div>
@@ -355,12 +359,12 @@
                             <span class="text-secondary">BNB</span>
                         </div>
                         <div class="asset-balance text-right">
-                            <h4>0.0000</h4>
-                            <span class="text-secondary">$0.00</span>
+                            <h4 id="asset-bnb-balance">0.0000</h4>
+                            <span class="text-secondary" id="asset-bnb-usd">$0.00</span>
                         </div>
                     </div>
                     <!-- Solana -->
-                    <div class="asset-item glass">
+                    <div class="asset-item glass" style="cursor:pointer" onclick="openWalletAddress('sol')">
                         <div class="asset-icon crypto-icon-wrap" style="background:#9945FF;">
                             <img src="crypto-icons/sol.svg" alt="SOL" class="crypto-img">
                         </div>
@@ -369,8 +373,8 @@
                             <span class="text-secondary">SOL</span>
                         </div>
                         <div class="asset-balance text-right">
-                            <h4>0.000</h4>
-                            <span class="text-secondary">$0.00</span>
+                            <h4 id="asset-sol-balance">0.0000</h4>
+                            <span class="text-secondary" id="asset-sol-usd">$0.00</span>
                         </div>
                     </div>
                 </div>
@@ -378,18 +382,43 @@
 
             <!-- View: Profile -->
             <section id="view-profile" class="view">
-                <div class="profile-header glass">
+                <div id="profile-banner" style="height:100px;border-radius:16px;margin-bottom:-48px;background:linear-gradient(135deg,#6C38FF,#00B0FF);position:relative"></div>
+                <div class="profile-header glass" style="position:relative">
                     <div class="profile-avatar">
                         <i class="icon" data-icon="perfil"></i>
                     </div>
                     <div class="profile-details">
+                        <h3 id="profile-name">Minerador</h3>
                         <div class="user-id">
-                            <h3>ID: 5df51db2</h3>
+                            <span class="text-secondary" style="font-size:13px">ID: 5df51db2</span>
                             <i class="icon text-secondary" data-icon="copiar" style="cursor: pointer;"></i>
                         </div>
-                        <span class="badge" style="display: inline-block;">Bronze I</span>
+                        <span class="badge" id="profile-vip-badge" style="display: inline-block;">Bronze I</span>
                     </div>
                     <button class="icon-btn"><i class="icon" data-icon="editar"></i></button>
+                </div>
+
+                <div class="dashboard-grid" style="margin-top:16px">
+                    <div class="grid-card glass">
+                        <i class="icon text-purple card-icon" data-icon="mineradora"></i>
+                        <h4 id="profile-stat-miners">0</h4>
+                        <p class="text-secondary">Mineradoras</p>
+                    </div>
+                    <div class="grid-card glass">
+                        <i class="icon text-purple card-icon" data-icon="raio_circulo"></i>
+                        <h4 id="profile-stat-power">0 TH</h4>
+                        <p class="text-secondary">Poder total</p>
+                    </div>
+                    <div class="grid-card glass">
+                        <i class="icon text-purple card-icon" data-icon="raio_circulo"></i>
+                        <h4 id="profile-stat-energy">0 W</h4>
+                        <p class="text-secondary">Geração</p>
+                    </div>
+                    <div class="grid-card glass">
+                        <i class="icon text-purple card-icon" data-icon="coroa"></i>
+                        <h4 id="profile-stat-vip">Bronze I</h4>
+                        <p class="text-secondary">Nível VIP</p>
+                    </div>
                 </div>
 
                 <div class="profile-menu">
