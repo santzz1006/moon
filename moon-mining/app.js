@@ -66,7 +66,7 @@ const INITIAL_STATE = {
     ownedMiners: [],
     generators: [],
     vipLevel: 'Bronze I',
-    profile: { name: 'Minerador', email: '', banner: 0 },
+    profile: { name: 'Minerador', email: '', banner: 0, avatar: 0 },
     freeGenAvailable: false,
     freeGenClaimed: false,
     listings: [],
@@ -90,12 +90,19 @@ if (state.crypto && state.crypto.mmt === undefined && state.crypto.gmt !== undef
 }
 state.crypto = Object.assign({ btc: 0, mmt: 1000, eth: 0, sol: 0, bnb: 0, usdt: 0 }, state.crypto || {});
 state.generators = state.generators || [];
-state.profile = Object.assign({ name: 'Minerador', email: '', banner: 0 }, state.profile || {});
+state.profile = Object.assign({ name: 'Minerador', email: '', banner: 0, avatar: 0 }, state.profile || {});
 state.freeGenAvailable = state.freeGenAvailable || false;
 state.freeGenClaimed = state.freeGenClaimed || false;
 state.listings = state.listings || [];
 state.lastSpin = state.lastSpin || 0;
-state.ownedMiners.forEach(m => { if (!m.coin) m.coin = 'btc'; m.components = m.components || {}; m.componentsValue = m.componentsValue || 0; });
+state.ownedMiners.forEach(m => { if (!m.coin) m.coin = 'btc'; m.components = m.components || {}; m.componentsValue = m.componentsValue || 0; if (!m.img) m.img = minerImgFor(m.id); });
+state.listings.forEach(l => { if (!l.img) l.img = minerImgFor(l.id); });
+
+function minerImgFor(id) {
+    if (id === 'miner_3' || id === 'mm_2') return 'assets/mineradoras/mineradora3.png';
+    if (id === 'miner_2' || id === 'mm_1') return 'assets/mineradoras/mineradora2.png';
+    return 'assets/mineradoras/mineradora1.png';
+}
 
 // Market Items (Mock Data)
 const marketMiners = [
@@ -107,6 +114,7 @@ const marketMiners = [
         roi: 56.98, // %
         priceMMT: 80.00,
         oldPriceMMT: 120.00,
+        img: 'assets/mineradoras/mineradora1.png',
     },
     {
         id: 'miner_2',
@@ -116,6 +124,7 @@ const marketMiners = [
         roi: 62.40,
         priceMMT: 350.00,
         oldPriceMMT: 400.00,
+        img: 'assets/mineradoras/mineradora2.png',
     },
     {
         id: 'miner_3',
@@ -125,6 +134,7 @@ const marketMiners = [
         roi: 75.10,
         priceMMT: 800.00,
         oldPriceMMT: 950.00,
+        img: 'assets/mineradoras/mineradora3.png',
     }
 ];
 
@@ -250,7 +260,12 @@ function updateUI() {
     const vipHome = document.getElementById('display-vip-level');
     if (vipHome) vipHome.textContent = vip.name;
     const vipBadge = document.getElementById('profile-vip-badge');
-    if (vipBadge) vipBadge.textContent = vip.name;
+    if (vipBadge) vipBadge.innerHTML = `${ic(vip.icon, 'text-purple')} ${vip.name}`;
+    const vipHomeIcon = document.getElementById('home-vip-icon');
+    if (vipHomeIcon) { vipHomeIcon.setAttribute('data-icon', vip.icon); }
+    const vipStatIcon = document.getElementById('profile-vip-icon');
+    if (vipStatIcon) { vipStatIcon.setAttribute('data-icon', vip.icon); }
+    if (window.injectIcons) window.injectIcons();
     const profName = document.getElementById('profile-name');
     if (profName) profName.textContent = state.profile.name || 'Minerador';
     const statMiners = document.getElementById('profile-stat-miners');
@@ -262,20 +277,29 @@ function updateUI() {
     const statVip = document.getElementById('profile-stat-vip');
     if (statVip) statVip.textContent = vip.name;
     const banner = document.getElementById('profile-banner');
-    if (banner) banner.style.background = BANNER_PRESETS[state.profile.banner % BANNER_PRESETS.length];
+    if (banner) {
+        banner.style.background = `url('assets/banner/banner${(state.profile.banner % 3) + 1}.jpeg') center/cover no-repeat`;
+    }
+    const avatar = document.querySelector('#view-profile .profile-avatar');
+    if (avatar) {
+        avatar.innerHTML = `<img src="assets/perfil/perfil${(state.profile.avatar % 3) + 1}.jpeg" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+    }
 
     renderOwnedMiners();
 }
 
 function openListingsModal() {
     const items = (state.listings || []).map(l => `
-        <div class="glass" style="padding:14px;border-radius:12px;margin-bottom:10px">
+        <div class="glass" style="padding:14px;border-radius:12px;margin-bottom:10px;display:flex;gap:12px;align-items:center">
+            <img src="${l.img || 'assets/mineradoras/mineradora1.png'}" alt="${l.name}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;flex-shrink:0">
+            <div style="flex:1">
             <h4 style="margin-bottom:4px">${l.name}</h4>
             <p class="text-secondary" style="font-size:12px">${l.power} TH · ${l.efficiency} W/TH · gerava ${(l.coin || 'btc').toUpperCase()}</p>
             <p style="font-size:14px;margin:6px 0">À venda por <strong class="text-green">${l.salePrice} MMT</strong> <span class="text-secondary" style="font-size:11px">(17% abaixo do preço original)</span></p>
             <div style="display:flex;gap:8px">
                 <button class="btn-primary" style="flex:1" onclick="sellListing(${l.instanceId})">Vender</button>
                 <button class="btn-primary" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.2)" onclick="cancelListing(${l.instanceId})">Cancelar</button>
+            </div>
             </div>
         </div>`).join('');
     openModal('Os meus listings',
@@ -331,13 +355,13 @@ const BANNER_PRESETS = [
 ];
 
 const VIP_LEVELS = [
-    { name: 'Bronze I', min: 0 },
-    { name: 'Bronze II', min: 10 },
-    { name: 'Silver I', min: 30 },
-    { name: 'Silver II', min: 75 },
-    { name: 'Gold I', min: 150 },
-    { name: 'Gold II', min: 400 },
-    { name: 'Diamond', min: 1000 },
+    { name: 'Bronze I', min: 0, icon: 'patente_bronze' },
+    { name: 'Bronze II', min: 10, icon: 'patente_prata' },
+    { name: 'Silver I', min: 30, icon: 'patente_ouro' },
+    { name: 'Silver II', min: 75, icon: 'patente_platina' },
+    { name: 'Gold I', min: 150, icon: 'patente_platina' },
+    { name: 'Gold II', min: 400, icon: 'patente_diamante' },
+    { name: 'Diamond', min: 1000, icon: 'patente_diamante' },
 ];
 
 function getVipInfo() {
@@ -347,7 +371,7 @@ function getVipInfo() {
     const current = VIP_LEVELS[idx];
     const next = VIP_LEVELS[idx + 1] || null;
     const pct = next ? Math.min(100, Math.round((score - current.min) / (next.min - current.min) * 100)) : 100;
-    return { name: current.name, next, pct, score };
+    return { name: current.name, icon: current.icon, next, pct, score };
 }
 
 function ensureMMT(needed) {
@@ -409,8 +433,8 @@ function renderOwnedMiners() {
         item.style.animationDelay = `${index * 70}ms`;
         item.setAttribute('onclick', `openMinerDetail(${miner.instanceId})`);
         item.innerHTML = `
-            <div class="owned-miner-icon moon-token-owned">
-                <img src="crypto-icons/moon-token.png" alt="Moon Token" class="owned-moon-img">
+            <div class="owned-miner-icon moon-token-owned" style="overflow:hidden;border-radius:10px">
+                <img src="${miner.img || 'assets/mineradoras/mineradora1.png'}" alt="${miner.name}" class="owned-moon-img" style="object-fit:cover">
             </div>
             <div class="owned-miner-details">
                 <h4>${miner.name}</h4>
@@ -418,7 +442,7 @@ function renderOwnedMiners() {
                     <span>${miner.power} TH · ${miner.efficiency} W/TH · gerando ${coinIcon(coin, 14)} <strong>${coin.toUpperCase()}</strong></span>
                     <span class="text-green">Active</span>
                 </div>
-                <div style="font-size:12px;margin:2px 0" class="text-secondary">~${tpdStr} ${coin.toUpperCase()}/dia · 💰 ${miner.componentsValue || 0} MMT em componentes</div>
+                <div style="font-size:12px;margin:2px 0" class="text-secondary">~${tpdStr} ${coin.toUpperCase()}/dia · ${ic('earn', 'text-purple')} ${miner.componentsValue || 0} MMT em componentes</div>
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: ${100 - (index * 5)}%"></div>
                 </div>
@@ -437,7 +461,7 @@ window.buyMiner = function (minerId, price, name, power, efficiency, roi) {
         // Recupera campos extras (type/boost) do catálogo pelo id
         const allItems = Object.values(marketCategories || {}).flat();
         const found = allItems.find(m => m.id === minerId);
-        if (found) { minerTemplate.type = found.type; minerTemplate.boost = found.boost; }
+        if (found) { minerTemplate.type = found.type; minerTemplate.boost = found.boost; minerTemplate.img = found.img; }
     } else {
         const allItems = Object.values(marketCategories || {}).flat();
         minerTemplate = allItems.find(m => m.id === minerId) || marketMiners.find(m => m.id === minerId);
@@ -601,6 +625,10 @@ function setupEventListeners() {
         btnBalance.innerHTML = ic(hidden ? 'olho_fechado' : 'olho_aberto');
     });
 
+    // Coroa: abre o VIP
+    const btnVip = document.getElementById('open-vip');
+    btnVip && btnVip.addEventListener('click', openVIPModal);
+
     // Sino: ligar / desligar notificações
     const btnBell = document.getElementById('toggle-notifications');
     let notificationsOn = true;
@@ -694,7 +722,7 @@ function openCriarModal() {
         if (!name) { showToast('Digite um nome para o minerador.', 'error'); return; }
         if (state.crypto.mmt < cost) { showToast(`MMT insuficiente. Necessário: ${cost} MMT`, 'error'); return; }
         state.crypto.mmt -= cost;
-        state.ownedMiners.push({ id: `custom_${Date.now()}`, name, power, efficiency: 25, roi: 50, priceMMT: cost, coin: 'btc', components: {}, instanceId: Date.now() });
+        state.ownedMiners.push({ id: `custom_${Date.now()}`, name, power, efficiency: 25, roi: 50, priceMMT: cost, coin: 'btc', components: {}, img: 'assets/mineradoras/mineradora1.png', instanceId: Date.now() });
         saveState(); updateUI(); closeModal();
         showToast(`Minerador "${name}" criado com sucesso!`, 'success');
     });
@@ -815,7 +843,7 @@ window.spinRoulette = function () {
         { p: 20, label: 'Gerador +100 W', apply: () => { state.generators.push({ id: 'spin_gen_' + Date.now(), name: 'Gerador da Roleta', output: 100, instanceId: Date.now() }); } },
         { p: 15, label: 'Chip +1 TH', apply: () => { if (state.ownedMiners.length > 0) { state.ownedMiners.forEach(m => m.power = +(m.power + 1).toFixed(1)); } else { state.crypto.mmt += 50; } } },
         { p: 10, label: 'Gerador Eólico +600 W', apply: () => { state.generators.push({ id: 'spin_gen_' + Date.now(), name: 'Turbina da Roleta', output: 600, instanceId: Date.now() }); } },
-        { p: 5, label: 'Mine Box Básica!', apply: () => { state.ownedMiners.push({ id: 'miner_1', name: 'The Mine Box #Roleta', power: 3, efficiency: 20, roi: 56.98, priceMMT: 80, oldPriceMMT: 120, coin: 'btc', components: {}, instanceId: Date.now() }); } },
+        { p: 5, label: 'Mine Box Básica!', apply: () => { state.ownedMiners.push({ id: 'miner_1', name: 'The Mine Box #Roleta', power: 3, efficiency: 20, roi: 56.98, priceMMT: 80, oldPriceMMT: 120, coin: 'btc', components: {}, img: 'assets/mineradoras/mineradora1.png', instanceId: Date.now() }); } },
     ];
     let roll = Math.random() * 100;
     let chosen = prizes[0];
@@ -823,7 +851,7 @@ window.spinRoulette = function () {
     chosen.apply();
     saveState(); updateUI();
     const el = document.getElementById('roulette-result');
-    if (el) el.textContent = `🎉 Você ganhou: ${chosen.label}!`;
+    if (el) el.innerHTML = `${ic('confete', 'text-purple')} Você ganhou: ${chosen.label}!`;
     const btn = document.getElementById('spin-roulette');
     if (btn) { btn.disabled = true; btn.style.opacity = 0.5; btn.textContent = 'Volte amanhã!'; }
     showToast(`Roleta: ${chosen.label}!`, 'success');
@@ -833,7 +861,7 @@ function openVIPModal() {
     const vip = getVipInfo();
     openModal('VIP Progress',
         `<div style="text-align:center;padding:10px 0">
-            <div style="font-size:48px;margin-bottom:12px">${ic('coroa', 'text-purple')}</div>
+            <div style="font-size:48px;margin-bottom:12px">${ic(vip.icon, 'text-purple')}</div>
             <h3>${vip.name}</h3>
             <p class="text-secondary" style="margin:8px 0 20px">${vip.next ? `Progresso para ${vip.next.name}` : 'Nível máximo atingido!'}</p>
             <div class="progress-bar" style="height:10px;border-radius:5px;margin-bottom:8px">
@@ -903,17 +931,17 @@ function openSecurityModal() {
 // =============================================
 const marketCategories = {
     'Mineiros': [
-        { id:'miner_1', name:'The Mine Box #267404', power:3, efficiency:20, roi:56.98, priceMMT:80, oldPriceMMT:120 },
-        { id:'miner_2', name:'Pro Rack #883921', power:10, efficiency:22, roi:62.40, priceMMT:350, oldPriceMMT:400 },
-        { id:'miner_3', name:'Elite ASIC #10923', power:25, efficiency:18, roi:75.10, priceMMT:800, oldPriceMMT:950 }
+        { id:'miner_1', name:'The Mine Box #267404', power:3, efficiency:20, roi:56.98, priceMMT:80, oldPriceMMT:120, img:'assets/mineradoras/mineradora1.png' },
+        { id:'miner_2', name:'Pro Rack #883921', power:10, efficiency:22, roi:62.40, priceMMT:350, oldPriceMMT:400, img:'assets/mineradoras/mineradora2.png' },
+        { id:'miner_3', name:'Elite ASIC #10923', power:25, efficiency:18, roi:75.10, priceMMT:800, oldPriceMMT:950, img:'assets/mineradoras/mineradora3.png' }
     ],
     'MoonMiners': [
-        { id:'mm_1', name:'Moon Starter #001', power:5, efficiency:19, roi:60.00, priceMMT:200, oldPriceMMT:250 },
-        { id:'mm_2', name:'Moon Pro #088', power:15, efficiency:17, roi:70.00, priceMMT:500, oldPriceMMT:600 }
+        { id:'mm_1', name:'Moon Starter #001', power:5, efficiency:19, roi:60.00, priceMMT:200, oldPriceMMT:250, img:'assets/mineradoras/mineradora2.png' },
+        { id:'mm_2', name:'Moon Pro #088', power:15, efficiency:17, roi:70.00, priceMMT:500, oldPriceMMT:600, img:'assets/mineradoras/mineradora3.png' }
     ],
     'Mercadorias': [
-        { id:'mc_1', name:'Hash Chip +1 TH', power:1, efficiency:0, roi:0, priceMMT:50, oldPriceMMT:70, type:'chip', boost:1 },
-        { id:'mc_2', name:'Power Chip +3 TH', power:3, efficiency:0, roi:0, priceMMT:120, oldPriceMMT:160, type:'chip', boost:3 }
+        { id:'mc_1', name:'Hash Chip +1 TH', power:1, efficiency:0, roi:0, priceMMT:50, oldPriceMMT:70, type:'chip', boost:1, img:'assets/mercadorias/hashchip.jpeg' },
+        { id:'mc_2', name:'Power Chip +3 TH', power:3, efficiency:0, roi:0, priceMMT:120, oldPriceMMT:160, type:'chip', boost:3, img:'assets/mercadorias/powerchip.jpeg' }
     ]
 };
 
@@ -964,15 +992,17 @@ function renderMarketItems(items) {
         card.className = 'miner-card glass';
         card.style.animationDelay = `${index * 70}ms`;
         card.innerHTML = `
-            <div class="miner-image-placeholder">
-                <img src="crypto-icons/moon-token.png" alt="Moon Token" class="miner-moon-token">
-                <div class="miner-badges">
-                    <span class="badge">${ic('raio')}${miner.power} TH</span>
-                    <span class="badge">${ic('cpu')}${miner.efficiency} W/TH</span>
-                    <span class="badge text-green">${ic('graph_up')}${miner.roi}% ROI</span>
-                </div>
+            <div class="miner-media ${miner.img ? 'has-photo' : ''}">
+                <img src="${miner.img || 'crypto-icons/moon-token.png'}" alt="${miner.name}">
             </div>
             <div class="miner-info">
+                <div class="miner-badges">
+                    ${miner.type === 'chip'
+                        ? `<span class="badge text-green">${ic('graph_up')}+${miner.boost} TH</span>`
+                        : `<span class="badge">${ic('raio')}${miner.power} TH</span>
+                    <span class="badge">${ic('cpu')}${miner.efficiency} W/TH</span>
+                    <span class="badge text-green">${ic('graph_up')}${miner.roi}% ROI</span>`}
+                </div>
                 <h3>${miner.name}</h3>
                 <div class="miner-price-row">
                     <span class="new-price">${ic('etiqueta_preco')} ${miner.priceMMT} MMT</span>
@@ -1144,10 +1174,10 @@ window.buyGenerator = function (genId) {
 
 // --- Mineradora: detalhes + componentes ---
 const COMPONENTS = [
-    { id: 'cooler', name: 'Cooler Pro', desc: 'Reduz o consumo em ~15%', cost: 60, apply: m => { m.efficiency = Math.max(5, +(m.efficiency * 0.85).toFixed(1)); } },
-    { id: 'overclock', name: 'Chip Overclock', desc: '+20% de poder de mineração', cost: 120, apply: m => { m.power = +(m.power * 1.2).toFixed(1); } },
-    { id: 'hashboard', name: 'Hashboard HD', desc: '+12% de poder de mineração', cost: 200, apply: m => { m.power = +(m.power * 1.12).toFixed(1); } },
-    { id: 'psu', name: 'PSU Turbo', desc: 'Reduz o consumo em ~10%', cost: 80, apply: m => { m.efficiency = Math.max(5, +(m.efficiency * 0.9).toFixed(1)); } },
+    { id: 'cooler', name: 'Cooler Pro', desc: 'Reduz o consumo em ~15%', cost: 60, img: 'assets/components/cooler.jpeg', apply: m => { m.efficiency = Math.max(5, +(m.efficiency * 0.85).toFixed(1)); } },
+    { id: 'overclock', name: 'Chip Overclock', desc: '+20% de poder de mineração', cost: 120, img: 'assets/components/overclock.jpeg', apply: m => { m.power = +(m.power * 1.2).toFixed(1); } },
+    { id: 'hashboard', name: 'Hashboard HD', desc: '+12% de poder de mineração', cost: 200, img: 'assets/components/hashboard.jpeg', apply: m => { m.power = +(m.power * 1.12).toFixed(1); } },
+    { id: 'psu', name: 'PSU Turbo', desc: 'Reduz o consumo em ~10%', cost: 80, img: 'assets/components/psu.jpeg', apply: m => { m.efficiency = Math.max(5, +(m.efficiency * 0.9).toFixed(1)); } },
 ];
 
 function componentCost(comp, ownedCount) {
@@ -1161,11 +1191,14 @@ window.openMinerDetail = function (instanceId) {
         const owned = (m.components && m.components[c.id]) || 0;
         const cost = componentCost(c, owned);
         return `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px">
-            <div>
-                <h4 style="margin-bottom:2px">${c.name}${owned > 0 ? ` <span class="text-secondary" style="font-size:12px">(x${owned})</span>` : ''}</h4>
-                <p class="text-secondary" style="font-size:12px">${c.desc}</p>
+            <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                <img src="${c.img}" alt="${c.name}" style="width:46px;height:46px;border-radius:10px;object-fit:cover;flex-shrink:0">
+                <div style="min-width:0">
+                    <h4 style="margin-bottom:2px">${c.name}${owned > 0 ? ` <span class="text-secondary" style="font-size:12px">(x${owned})</span>` : ''}</h4>
+                    <p class="text-secondary" style="font-size:12px">${c.desc}</p>
+                </div>
             </div>
-            <button class="btn-primary" style="width:auto;white-space:nowrap" onclick="buyComponent(${m.instanceId}, '${c.id}')">${cost} MMT</button>
+            <button class="btn-primary" style="width:auto;white-space:nowrap;flex-shrink:0" onclick="buyComponent(${m.instanceId}, '${c.id}')">${cost} MMT</button>
         </div>`;
     }).join('');
 
@@ -1184,8 +1217,9 @@ window.openMinerDetail = function (instanceId) {
     const tpdStr = tokensPerDay >= 100 ? tokensPerDay.toFixed(2) : tokensPerDay >= 1 ? tokensPerDay.toFixed(4) : tokensPerDay.toFixed(8);
 
     const ownedTiles = COMPONENTS.filter(c => (m.components && m.components[c.id]) > 0).map(c =>
-        `<div class="glass" style="width:64px;height:64px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;text-align:center;padding:4px" title="${c.name}">
-            <strong style="font-size:13px">${c.name.split(' ')[0]}</strong>
+        `<div class="glass" style="width:72px;min-height:88px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;text-align:center;padding:6px 4px" title="${c.name}">
+            <img src="${c.img}" alt="${c.name}" style="width:34px;height:34px;border-radius:8px;object-fit:cover">
+            <strong style="font-size:11px;line-height:1.2">${c.name}</strong>
             <span class="text-secondary">×${m.components[c.id]}</span>
         </div>`
     ).join('');
@@ -1196,7 +1230,7 @@ window.openMinerDetail = function (instanceId) {
             <p class="text-secondary">Consumo: <strong>${Math.round(m.power * m.efficiency)} W</strong></p>
             <p class="text-secondary" style="margin-top:4px">Produção estimada: <strong class="text-green">~${tpdStr} ${(m.coin || 'btc').toUpperCase()}/dia</strong> <span>(≈ $${usdPerDay.toFixed(2)}/dia)</span></p>
             <p class="text-secondary" style="margin-top:4px">Energia da fazenda: <strong class="${factor >= 1 ? 'text-green' : ''}">${Math.round(getEnergyCapacity())} W disponíveis / ${Math.round(getTotalConsumption())} W em uso (${Math.round(factor * 100)}%)</strong></p>
-            <p class="text-secondary" style="margin-top:4px">💰 Valor em componentes: <strong class="text-purple">${m.componentsValue || 0} MMT</strong></p>
+            <p class="text-secondary" style="margin-top:4px">${ic('earn', 'text-purple')} Valor em componentes: <strong class="text-purple">${m.componentsValue || 0} MMT</strong></p>
         </div>
         <label class="modal-label">Criptomoeda minerada</label>
         <div id="coin-picker" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">${coinOptions}</div>
@@ -1401,31 +1435,58 @@ function openStakeModal() {
 // PROFILE MODALS
 // =============================================
 function openEditProfileModal() {
+    let selAvatar = state.profile.avatar || 0;
+    let selBanner = state.profile.banner || 0;
+    const avatarBtns = [0, 1, 2].map(i => `
+        <button type="button" class="avatar-pick" data-i="${i}" style="width:64px;height:64px;border-radius:50%;padding:0;border:3px solid ${i === selAvatar ? 'var(--primary-purple)' : 'transparent'};cursor:pointer;overflow:hidden;background:none">
+            <img src="assets/perfil/perfil${i + 1}.jpeg" alt="Avatar ${i + 1}" style="width:100%;height:100%;object-fit:cover;display:block">
+        </button>`).join('');
+    const bannerBtns = [0, 1, 2].map(i => `
+        <button type="button" class="banner-pick" data-i="${i}" style="height:52px;border-radius:10px;padding:0;border:3px solid ${i === selBanner ? 'var(--primary-purple)' : 'transparent'};cursor:pointer;overflow:hidden;background:none">
+            <img src="assets/banner/banner${i + 1}.jpeg" alt="Banner ${i + 1}" style="width:100%;height:100%;object-fit:cover;display:block">
+        </button>`).join('');
     openModal('Editar Perfil',
         `<div style="text-align:center;margin-bottom:20px">
-            <div class="profile-avatar" style="width:80px;height:80px;font-size:40px;margin:0 auto 12px">${ic('perfil','text-purple')}</div>
-            <button class="btn-sm" style="background:var(--primary-purple);border:none;padding:8px 16px;border-radius:20px;color:white;cursor:pointer" id="change-avatar">Trocar Avatar</button>
-            <button class="btn-sm" style="background:transparent;border:1px solid var(--primary-purple);padding:8px 16px;border-radius:20px;color:white;cursor:pointer;margin-left:8px" id="change-banner">Trocar Banner</button>
+            <div class="profile-avatar" style="width:80px;height:80px;font-size:40px;margin:0 auto 12px;overflow:hidden">
+                <img id="edit-avatar-preview" src="assets/perfil/perfil${selAvatar + 1}.jpeg" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+            </div>
         </div>
+        <label class="modal-label">Foto de perfil — toque para escolher</label>
+        <div style="display:flex;gap:12px;justify-content:center;margin-bottom:16px" id="avatar-picker">${avatarBtns}</div>
+        <label class="modal-label">Banner do perfil — toque para escolher</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px" id="banner-picker">${bannerBtns}</div>
         <label class="modal-label">Nome de usuário</label>
         <input class="modal-input" id="edit-username" placeholder="Seu nome" />
         <label class="modal-label">E-mail</label>
         <input class="modal-input" id="edit-email" type="email" placeholder="seu@email.com" />`,
         `<button class="btn-primary" id="save-profile">Salvar Perfil</button>`
     );
-    document.getElementById('change-avatar').addEventListener('click', () => showToast('Funcionalidade de avatar em breve!', 'info'));
+    document.querySelectorAll('#avatar-picker .avatar-pick').forEach(btn => {
+        btn.addEventListener('click', () => {
+            selAvatar = parseInt(btn.dataset.i);
+            document.querySelectorAll('#avatar-picker .avatar-pick').forEach(b => {
+                b.style.borderColor = parseInt(b.dataset.i) === selAvatar ? 'var(--primary-purple)' : 'transparent';
+            });
+            document.getElementById('edit-avatar-preview').src = `assets/perfil/perfil${selAvatar + 1}.jpeg`;
+        });
+    });
+    document.querySelectorAll('#banner-picker .banner-pick').forEach(btn => {
+        btn.addEventListener('click', () => {
+            selBanner = parseInt(btn.dataset.i);
+            document.querySelectorAll('#banner-picker .banner-pick').forEach(b => {
+                b.style.borderColor = parseInt(b.dataset.i) === selBanner ? 'var(--primary-purple)' : 'transparent';
+            });
+        });
+    });
     document.getElementById('edit-username').value = state.profile.name || '';
     document.getElementById('edit-email').value = state.profile.email || '';
-    document.getElementById('change-banner').addEventListener('click', () => {
-        state.profile.banner = (state.profile.banner + 1) % BANNER_PRESETS.length;
-        saveState(); updateUI();
-        showToast('Banner atualizado!', 'success');
-    });
     document.getElementById('save-profile').addEventListener('click', () => {
         const name = document.getElementById('edit-username').value.trim();
         if (!name) { showToast('Digite um nome de usuário.', 'error'); return; }
         state.profile.name = name;
         state.profile.email = document.getElementById('edit-email').value.trim();
+        state.profile.avatar = selAvatar;
+        state.profile.banner = selBanner;
         saveState(); updateUI(); closeModal();
         showToast('Perfil atualizado com sucesso!', 'success');
     });
@@ -1602,12 +1663,12 @@ window.devAdd = function () {
     state.usdBalance += 10000;
     state.crypto.btc += 0.005;
     saveState(); updateUI();
-    showToast('💰 DEV: +10.000 MMT, +$10.000 USD, +0.005 BTC', 'success');
+    showToast(`${ic('earn', 'text-purple')} DEV: +10.000 MMT, +$10.000 USD, +0.005 BTC`, 'success');
 };
 window.devFreeEnergy = function () {
-    state.generators.push({ id: 'dev_gen_' + Date.now(), name: 'Gerador Dev ⚡', output: 5000, instanceId: Date.now() });
+    state.generators.push({ id: 'dev_gen_' + Date.now(), name: 'Gerador Dev', output: 5000, instanceId: Date.now() });
     saveState(); updateUI();
-    showToast('⚡ DEV: Gerador de 5000 W adicionado', 'success');
+    showToast(`${ic('raio_circulo', 'text-purple')} DEV: Gerador de 5000 W adicionado`, 'success');
 };
 window.devReset = function () {
     localStorage.clear();

@@ -4,7 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MoonMining Simulator</title>
+    <title>Moon Mining</title>
+    <link rel="icon" type="image/png" href="assets/logo_mobile/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="assets/logo_mobile/apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Moon Mining">
+    <meta name="application-name" content="Moon Mining">
+    <meta name="theme-color" content="#0B0E14">
+    <link rel="manifest" href="manifest.webmanifest">
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -115,7 +124,7 @@
             <button id="open-sidebar" class="icon-btn"><i class="icon" data-icon="menu_lateral"></i></button>
             <h1 class="page-title">Início</h1>
             <div class="header-right">
-                <i class="icon text-purple" data-icon="coroa" style="font-size:22px"></i>
+                <button class="icon-btn" id="open-vip" aria-label="VIP"><i class="icon text-purple" data-icon="coroa" style="font-size:22px"></i></button>
                 <button class="icon-btn bell-btn" id="toggle-notifications" aria-label="Notificações"><i class="icon"
                         data-icon="sino_ligado"></i></button>
             </div>
@@ -185,7 +194,7 @@
                         <p class="text-secondary">Upgrade Power</p>
                     </div>
                     <div class="grid-card glass">
-                        <i class="icon text-purple card-icon" data-icon="coroa"></i>
+                        <i id="home-vip-icon" class="icon text-purple card-icon" data-icon="patente_bronze"></i>
                         <h4 id="display-vip-level">Bronze I</h4>
                         <p class="text-secondary">VIP Progress</p>
                     </div>
@@ -277,7 +286,7 @@
                         <span>Instant</span>
                     </div>
                     <div class="action-btn-group">
-                        <button class="action-btn"><i class="icon" data-icon="arrow_up"></i></button>
+                        <button class="action-btn"><i class="icon" data-icon="saque"></i></button>
                         <span>Sacar</span>
                     </div>
                 </div>
@@ -415,7 +424,7 @@
                         <p class="text-secondary">Geração</p>
                     </div>
                     <div class="grid-card glass">
-                        <i class="icon text-purple card-icon" data-icon="coroa"></i>
+                        <i id="profile-vip-icon" class="icon text-purple card-icon" data-icon="patente_bronze"></i>
                         <h4 id="profile-stat-vip">Bronze I</h4>
                         <p class="text-secondary">Nível VIP</p>
                     </div>

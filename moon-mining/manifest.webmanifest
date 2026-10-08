@@ -1,0 +1,19 @@
+{
+  "name": "Moon Mining",
+  "short_name": "Moon Mining",
+  "description": "Moon Mining — simulador de mineração de criptomoedas",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0E14",
+  "theme_color": "#0B0E14",
+  "icons": [
+    {
+      "src": "assets/logo_mobile/apple-touch-icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

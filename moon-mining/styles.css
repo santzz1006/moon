@@ -381,12 +381,55 @@ span {
 
 /* Miner Card */
 .miner-card {
-    padding: 16px;
+    padding: 0;
     margin-bottom: 16px;
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    flex-direction: row;
+    gap: 0;
+    overflow: hidden;
+    align-items: stretch;
     animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Foto da mineradora — esquerda, preenchendo todo o espaço */
+.miner-media {
+    width: 190px;
+    flex-shrink: 0;
+    position: relative;
+    background: linear-gradient(135deg, rgba(108, 56, 255, 0.15), rgba(0, 0, 0, 0.5));
+    min-height: 200px;
+}
+
+.miner-media.has-photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.miner-media:not(.has-photo) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.miner-media:not(.has-photo) img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 20px rgba(108, 56, 255, 0.6));
+    animation: moonFloat 3s ease-in-out infinite;
+}
+
+.miner-info {
+    flex: 1;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
 }
 
 .miner-image-placeholder {
@@ -408,11 +451,15 @@ span {
 }
 
 .miner-badges {
-    position: absolute;
-    top: 12px;
-    left: 12px;
+    position: static;
     display: flex;
+    flex-wrap: wrap;
     gap: 6px;
+}
+
+.miner-badges .badge {
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .badge {
@@ -434,7 +481,27 @@ span {
     display: flex;
     align-items: baseline;
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.miner-info .btn-primary {
+    margin-top: auto;
+    padding: 11px;
+    font-size: 14px;
+}
+
+.miner-info h3 {
+    font-size: 16px;
+}
+
+.miner-info .new-price {
+    font-size: 20px;
+}
+
+.miner-info .badge {
+    font-size: 10px;
+    padding: 3px 6px;
 }
 
 .old-price {
