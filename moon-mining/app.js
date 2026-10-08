@@ -22,8 +22,8 @@ function coinIcon(coin, size = 20) {
 // MODAL SYSTEM
 // =============================================
 function openModal(title, bodyHTML, footerHTML = '') {
-    // Remove existing modal
-    closeModal();
+    // Remove TODOS os overlays antigos (sem animação) pra não duplicar ids no DOM
+    document.querySelectorAll('#modal-overlay').forEach(o => o.remove());
     const overlay = document.createElement('div');
     overlay.id = 'modal-overlay';
     overlay.innerHTML = `
@@ -38,7 +38,7 @@ function openModal(title, bodyHTML, footerHTML = '') {
     `;
     document.getElementById('app-container').appendChild(overlay);
     requestAnimationFrame(() => overlay.classList.add('open'));
-    document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+    document.getElementById('modal-close-btn')?.addEventListener('click', closeModal);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
     return overlay;
 }
@@ -95,7 +95,7 @@ state.freeGenAvailable = state.freeGenAvailable || false;
 state.freeGenClaimed = state.freeGenClaimed || false;
 state.listings = state.listings || [];
 state.lastSpin = state.lastSpin || 0;
-state.ownedMiners.forEach(m => { if (!m.coin) m.coin = 'btc'; m.components = m.components || {}; });
+state.ownedMiners.forEach(m => { if (!m.coin) m.coin = 'btc'; m.components = m.components || {}; m.componentsValue = m.componentsValue || 0; });
 
 // Market Items (Mock Data)
 const marketMiners = [
@@ -418,7 +418,7 @@ function renderOwnedMiners() {
                     <span>${miner.power} TH · ${miner.efficiency} W/TH · gerando ${coinIcon(coin, 14)} <strong>${coin.toUpperCase()}</strong></span>
                     <span class="text-green">Active</span>
                 </div>
-                <div style="font-size:12px;margin:2px 0" class="text-secondary">~${tpdStr} ${coin.toUpperCase()}/dia</div>
+                <div style="font-size:12px;margin:2px 0" class="text-secondary">~${tpdStr} ${coin.toUpperCase()}/dia · 💰 ${miner.componentsValue || 0} MMT em componentes</div>
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: ${100 - (index * 5)}%"></div>
                 </div>
@@ -1196,6 +1196,7 @@ window.openMinerDetail = function (instanceId) {
             <p class="text-secondary">Consumo: <strong>${Math.round(m.power * m.efficiency)} W</strong></p>
             <p class="text-secondary" style="margin-top:4px">Produção estimada: <strong class="text-green">~${tpdStr} ${(m.coin || 'btc').toUpperCase()}/dia</strong> <span>(≈ $${usdPerDay.toFixed(2)}/dia)</span></p>
             <p class="text-secondary" style="margin-top:4px">Energia da fazenda: <strong class="${factor >= 1 ? 'text-green' : ''}">${Math.round(getEnergyCapacity())} W disponíveis / ${Math.round(getTotalConsumption())} W em uso (${Math.round(factor * 100)}%)</strong></p>
+            <p class="text-secondary" style="margin-top:4px">💰 Valor em componentes: <strong class="text-purple">${m.componentsValue || 0} MMT</strong></p>
         </div>
         <label class="modal-label">Criptomoeda minerada</label>
         <div id="coin-picker" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">${coinOptions}</div>
@@ -1239,6 +1240,7 @@ window.buyComponent = function (instanceId, compId) {
     state.crypto.mmt -= cost;
     c.apply(m);
     m.components[compId] = owned + 1;
+    m.componentsValue = (m.componentsValue || 0) + cost;
     saveState(); updateUI();
     showToast(`${c.name} instalado em ${m.name}!`, 'success');
     openMinerDetail(m.instanceId);
